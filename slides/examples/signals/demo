@@ -1,0 +1,51 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+run_command_discard_stdout()
+{
+	echo "RUNNING: $*"
+	"$@" >& /dev/null
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+# NOTE: The signal_1 program never terminates.  So do not run it here.
+
+run_command \
+  "$build_dir/breakpoint_main" || \
+  panic "program failed"
+run_command \
+  "$build_dir/kill_1" || \
+  panic "program failed"
+run_command \
+  "$build_dir/sigill_main" || \
+  panic "program failed"
+
+# NOTE: The following program can theoretically take a very long time on
+# some systems.  So, it is best not to run it here.
+#run_command_discard_stdout "$build_dir/sigsegv_main" || panic "program failed"

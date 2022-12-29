@@ -1,0 +1,165 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+usage()
+{
+	cat <<- EOF
+	NAME
+	====
+
+	$(basename $0) - script for building code examples
+
+	SYNOPSIS
+	========
+
+	$0 [options] -s \$source_directory
+
+	OPTIONS
+	=======
+
+	-f
+	    Use the fmt library for std::format support.
+
+	-v
+	    Increase the verbosity of output.
+	    This will, for example, enable verbose makefiles.
+
+	-t
+	    Run demos/tests.
+
+	-p
+	    Attempt to install any software dependencies using the native
+	    package manager prior to starting the build process.
+
+	-s \$source_dir
+	    Specify the directory containing the CMakeLists.txt file
+	    for building all of the CMake projects associated with the
+	    code examples.
+
+	EXAMPLES
+	========
+
+	$0 -v -t -f
+	$0 -v -t
+	EOF
+
+	if [ $# -gt 0 ]; then
+		echo
+		echo "BAD USAGE: $*"
+	fi
+
+	exit 2
+}
+
+self_dir="$(dirname "$0")" || \
+  panic "cannot get directory name of program"
+self_dir="$(realpath "$self_dir")" || \
+  panic "cannot get real path of program"
+
+if [ -d "$self_dir/slides/examples" ]; then
+	source_dir="$self_dir/slides/examples"
+else
+	source_dir="$self_dir/../slides/software"
+fi
+
+use_fmtlib=0
+run_demo=0
+verbose=0
+install_prereqs=0
+
+while getopts "Hhvpts:f" option; do
+	case "$option" in
+	H|h)
+		usage;;
+	v)
+		verbose=1;;
+	t)
+		run_demo=1;;
+	p)
+		install_prereqs=1;;
+	s)
+		source_dir="$OPTARG";;
+	f)
+		use_fmtlib=1;;
+	*)
+		usage "invalid option $option";;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$source_dir" ]; then
+	usage "no source directory specified"
+fi
+
+if [ ! -f "$source_dir/CMakeLists.txt" ]; then
+	usage "The directory $source_dir does not contain a CMakeLists.txt file."
+fi
+
+source_dir="$(realpath "$source_dir")" || \
+  panic "cannot get realpath"
+
+build_dir="$source_dir/tmp_cmake"
+install_dir="$build_dir/install"
+
+cmake_config_options=()
+cmake_config_options+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake_config_options+=(-DUSE_FMTLIB="$use_fmtlib")
+if [ "$verbose" -ge 1 ]; then
+	cmake_config_options+=(-DCMAKE_VERBOSE_MAKEFILE=1)
+fi
+
+################################################################################
+# Install software dependencies.
+################################################################################
+
+if [ "$install_prereqs" -ne 0 ]; then
+	echo "PREBUILD: INSTALLING DEPENDENCIES"
+	# Note: Assume ubuntu for now.
+	os=ubuntu
+	case "$os" in
+	ubuntu)
+		packages=(
+			gcc
+			clang
+			libboost-all-dev
+			libseccomp2
+			libcap2-dev
+			auditd # for ausyscall
+			#libc++-dev # not needed
+		)
+		sudo apt-get update || \
+		  panic "apt-get update failed"
+		sudo apt-get install "${packages[@]}" || \
+		  panic "apt-get install failed"
+		;;
+	fedora)
+		packages=(
+		)
+		sudo dnf install "${packages[@]}" || \
+		  panic "cannot install software dependencies"
+		;;
+	esac
+fi
+
+################################################################################
+# Build code examples.
+################################################################################
+
+echo "CONFIGURING"
+cmake -H"$source_dir" -B"$build_dir" "${cmake_config_options[@]}" || \
+  panic "configure failed"
+
+echo "BUILDING"
+cmake --build "$build_dir" || \
+  panic "build failed"
+
+if [ "$run_demo" -ne 0 ]; then
+	echo "RUNNING DEMOS"
+	cmake --build "$build_dir" --target demo || \
+	  panic "demo failed"
+fi

@@ -1,0 +1,52 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+maybe_run_command()
+{
+	[ -x "$1" ] || return 0
+	run_command "$@"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+run_command "$build_dir/checksum_1" "$build_dir/checksum_1" || \
+  panic "program failed"
+
+run_command "$build_dir/crash_1" && \
+  panic "unexpected success"
+
+run_command "$build_dir/mmap_1" "$build_dir/temporary_file_for_test" || \
+  panic "program failed"
+
+run_command "$build_dir/mmap_2" || \
+  panic "program failed"
+
+run_command "$build_dir/mmap_allocator_main" || \
+  panic "program failed"
+
+run_command "$build_dir/mprotect_1" || \
+  panic "program failed"
+
+exit 0

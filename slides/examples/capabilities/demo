@@ -1,0 +1,41 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+for program_name in ls fping ping sudo; do
+	program="$(type -P "$program_name")" || program=
+	if [ -z "$program" ]; then
+		echo "SKIPPING: $program_name"
+		continue
+	fi
+	echo "Checking file capabilities for the $program_name program."
+	run_command "$build_dir/getfcap_1" "$program" || \
+	  panic "getfcap_1 failed"
+done
+
+echo "Checking capabilities for process."
+run_command "$build_dir/getpcap_1" || \
+  panic "getpcap_1 failed"

@@ -1,0 +1,66 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+maybe_run_command()
+{
+	[ -x "$1" ] || return 0
+	run_command "$@"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+ls_program="$(type -P ls)" || panic "cannot find ls program"
+wc_program="$(type -P wc)" || panic "cannot find wc program"
+
+run_command \
+  "$build_dir/copy_file_1" "$build_dir/copy_file_1" /dev/null || \
+  panic "program failed"
+run_command \
+  "$build_dir/file_1" || \
+  panic "program failed"
+run_command \
+  "$build_dir/file_2" || \
+  panic "program failed"
+run_command \
+  "$build_dir/file_3" || \
+  panic "program failed"
+run_command \
+  "$build_dir/io_redirection_1" /dev/null /dev/null "$ls_program" || \
+  panic "program failed"
+run_command \
+  "$build_dir/pipe_1" "$ls_program" "$wc_program" || \
+  panic "program failed"
+
+#maybe_run_command "$build_dir/pipe_2"
+
+run_command \
+  "$build_dir/unique_fd_1" || \
+  panic "program failed"
+run_command \
+  "$build_dir/vectored_io_1_a" || \
+  panic "program failed"
+run_command \
+  "$build_dir/vectored_io_1_b" || \
+  panic "program failed"

@@ -1,0 +1,32 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+run_command "$build_dir/sysconf_1" || \
+  panic "get_process_ids failed"
+
+run_command "$build_dir/get_user_group_ids" || \
+  panic "get_user_group_ids failed"

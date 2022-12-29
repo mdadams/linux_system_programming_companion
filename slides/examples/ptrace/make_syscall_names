@@ -1,0 +1,57 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $*" 1>&2
+	exit 1
+}
+
+mach_type="$(uname -m)" || panic "uname failed"
+
+printf "#include <array>\n" || \
+  panic "printf failed"
+printf "constexpr const char *mach_type = \"$mach_type\";\n" || \
+  panic "printf failed"
+
+ausyscall --dump | tail -n +2 | awk '
+BEGIN {
+	num_syscalls = 0;
+}
+{
+	i = $1;
+	syscall_names[i] = $2;
+	if (i >= num_syscalls) {
+		num_syscalls = i + 1;
+	}
+}
+END {
+	#printf "constexpr int num_syscalls = %d;\n", num_syscalls;
+	#printf "constexpr const char* syscall_names[] = {";
+	printf "constexpr std::array<const char*, %d> syscall_names{\n", num_syscalls;
+	for (i = 0; i < num_syscalls; ++i) {
+		if (i in syscall_names) {
+			printf "\t\"%s\", /* %d */\n", syscall_names[i], i;
+		} else {
+			printf "\tnullptr,\n";
+		}
+	}
+	print "};"
+	#printf "constexpr const char* getsyscallname(int n)\n";
+	#printf "{\n";
+	#printf "\treturn (n >= 0 && n < num_syscalls) ? syscall_names[n] : \"\";";
+	#printf "}\n";
+}
+' -
+ausyscall_status="${PIPESTATUS[0]}"
+tail_status="${PIPESTATUS[1]}"
+awk_status="${PIPESTATUS[2]}"
+if [ "$ausyscall_status" -ne 0 ]; then
+	panic "ausyscall failed"
+fi
+if [ "$tail_status" -ne 0 ]; then
+	panic "tail failed"
+fi
+if [ "$awk_status" -ne 0 ]; then
+	panic "awk failed"
+fi
+exit 0

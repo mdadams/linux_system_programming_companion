@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+program="$build_dir/app_dl"
+
+echo "The following invocation should fail."
+echo "RUNNING: $program"
+LD_LIBRARY_PATH="" "$program" && \
+  panic "unexpected success"
+
+echo "The following invocation should fail."
+echo "RUNNING: $program"
+LD_LIBRARY_PATH="$build_dir" "$program" > /dev/full && \
+  panic "unexpected success"
+
+echo "The following invocation should succeed."
+echo "RUNNING: $program"
+LD_LIBRARY_PATH="$build_dir" "$program" || \
+  panic "unexpected failure"

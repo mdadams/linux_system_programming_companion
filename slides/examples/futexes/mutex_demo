@@ -1,0 +1,40 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+options=("$@")
+
+program_names=(
+	spinlock1_test
+	spinlock2_test
+	mutex1_test
+	mutex2_test
+	ticketlock1_test
+	ticketlock2_test
+)
+
+for program_name in "${program_names[@]}"; do
+	program="$build_dir/$program_name"
+	if [ ! -x "$program" ]; then
+		echo "SKIPPING: $program_name"
+		continue
+	fi
+	command=(time "$program" "${options[@]}")
+	echo "RUNNING: ${command[*]}"
+	"${command[@]}" >& /dev/null || \
+	  panic "$program_name failed"
+done

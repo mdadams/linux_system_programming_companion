@@ -1,0 +1,37 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+pie_program="$build_dir/pie"
+no_pie_program="$build_dir/no_pie"
+
+run_command "$pie_program"
+[ $? -eq 42 ] || panic "program failed"
+
+run_command "$no_pie_program"
+[ $? -eq 42 ] || panic "program failed"
+
+echo "The test was successful."

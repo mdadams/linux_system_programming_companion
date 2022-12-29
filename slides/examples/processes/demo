@@ -1,0 +1,53 @@
+#! /usr/bin/env bash
+
+################################################################################
+
+cmake_source_dir="@CMAKE_SOURCE_DIR@"
+cmake_binary_dir="@CMAKE_BINARY_DIR@"
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+run_command()
+{
+	echo "RUNNING: $*"
+	"$@"
+	local status=$?
+	echo "EXIT STATUS: $status"
+	return "$status"
+}
+
+source_dir="$cmake_source_dir"
+build_dir="$cmake_binary_dir"
+
+################################################################################
+
+program_names=(
+	clone_1
+	exec_1
+	fork_1
+	fork_exec_1
+	fork_wait_1
+	fork_wait_2
+	get_process_ids
+	test_1
+	)
+
+for program_name in "${program_names[@]}"; do
+	program="$build_dir/$program_name"
+	if [ ! -x "$program" ]; then
+		echo "SKIPPING: $program_name"
+		continue
+	fi
+	args=()
+	case "$program_name" in
+	fork_exec_1)
+		args+=(/bin/ls)
+		;;
+	esac
+	run_command "$program" "${args[@]}" || \
+	  panic "$program_name failed"
+done

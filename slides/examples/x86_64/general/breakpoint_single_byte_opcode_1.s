@@ -1,0 +1,6 @@
+	# ...
+	jnz skip
+	xchg %eax, %ecx # consider placing breaking here
+skip:
+	mov %ecx, (%rdi)
+	# ...
