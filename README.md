@@ -135,6 +135,6 @@ basis on the following platforms:
   - Ubuntu 20.04 with Clang
 
 So, the software should build reliably on these platforms.
-The development of the software is done primarily on Fedora Linux
+The development of the software is done primarily on Fedora Linux.
 So, the code should also build reliably on recent versions of Fedora
 Linux.
