@@ -16,6 +16,10 @@ The most recent version of the slide deck is available for download at:
 
   - <https://www.ece.uvic.ca/~mdadams/cppbook>
 
+A direct link to the slide deck in PDF format is:
+
+  - <https://www.ece.uvic.ca/~mdadams/cppbook/downloads/lecture_slides_for_linux_system_programming-0.0.pdf>
+
 Organization of Repository
 --------------------------
 
