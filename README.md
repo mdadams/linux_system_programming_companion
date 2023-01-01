@@ -1,5 +1,5 @@
-Companion Repository for Lecture Slides for Linux System Programming
-====================================================================
+Companion Git Repository for "Lecture Slides for Linux System Programming"
+==========================================================================
 
 This repository contains all of the code examples that are associated
 with the following slide deck:
