@@ -129,8 +129,13 @@ project, use the command:
 Supported Platforms
 -------------------
 
-Obviously, since this software is for Linux system programming,
-only Linux-based platforms are supported.
+This software should work (i.e., build and run) on most modern
+distributions of Linux.  Since this software is intended for system
+programming specifically under Linux, only Linux-based platforms are
+officially supported.  This said, however, some of the code is likely
+to work on non-Linux systems that are reasonably compliant with the
+POSIX standard.
+
 A GitHub CI workflow is used to build the software on an ongoing
 basis on the following platforms:
 
@@ -140,5 +145,4 @@ basis on the following platforms:
 
 So, the software should build reliably on these platforms.
 The development of the software is done primarily on Fedora Linux.
-So, the code should also build reliably on recent versions of Fedora
-Linux.
+So, the code should also build reliably on recent versions of Fedora Linux.
